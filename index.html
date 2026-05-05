@@ -293,6 +293,23 @@ function toggleHistory(){
 var curSurah=null,curAyahIdx=0;
 function getCurrentAyah(){return curSurah?SURAH_MAP[curSurah].ayahs[curAyahIdx]:null;}
 
+function savePosition(){try{localStorage.setItem("hifz_pos",JSON.stringify({sn:curSurah,idx:curAyahIdx}));}catch(e){}}
+
+function restorePosition(){
+  try{
+    var p=JSON.parse(localStorage.getItem("hifz_pos"));
+    if(!p||!p.sn||!SURAH_MAP[p.sn])return;
+    curSurah=p.sn;curAyahIdx=p.idx||0;
+    var total=SURAH_MAP[curSurah].ayahs.length;
+    curAyahIdx=Math.min(curAyahIdx,total-1);
+    sel.value=curSurah;
+    document.getElementById("ayah-num").max=total;
+    document.getElementById("ayah-num").value=curAyahIdx+1;
+    document.getElementById("ayah-of").textContent="/ "+total;
+    document.getElementById("hint-btn").style.display="inline-block";
+  }catch(e){}
+}
+
 function onSurahChange(){
   var sn=+sel.value;if(!sn){curSurah=null;return;}
   curSurah=sn;curAyahIdx=0;
@@ -301,7 +318,7 @@ function onSurahChange(){
   document.getElementById("ayah-num").value=1;
   document.getElementById("ayah-of").textContent="/ "+total;
   document.getElementById("hint-btn").style.display="inline-block";
-  clearAll();document.getElementById("inp").focus();
+  savePosition();clearAll();document.getElementById("inp").focus();
 }
 
 function onAyahChange(){
@@ -309,14 +326,14 @@ function onAyahChange(){
   var total=SURAH_MAP[curSurah].ayahs.length;
   var v=Math.max(1,Math.min(parseInt(document.getElementById("ayah-num").value)||1,total));
   document.getElementById("ayah-num").value=v;
-  curAyahIdx=v-1;clearAll();document.getElementById("inp").focus();
+  curAyahIdx=v-1;savePosition();clearAll();document.getElementById("inp").focus();
 }
 
-function prevAyah(){if(curSurah&&curAyahIdx>0){curAyahIdx--;document.getElementById("ayah-num").value=curAyahIdx+1;clearAll();document.getElementById("inp").focus();}}
+function prevAyah(){if(curSurah&&curAyahIdx>0){curAyahIdx--;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();document.getElementById("inp").focus();}}
 function nextAyah(){
   if(!curSurah)return;
   var total=SURAH_MAP[curSurah].ayahs.length;
-  if(curAyahIdx<total-1){curAyahIdx++;document.getElementById("ayah-num").value=curAyahIdx+1;clearAll();document.getElementById("inp").focus();}
+  if(curAyahIdx<total-1){curAyahIdx++;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();document.getElementById("inp").focus();}
 }
 
 function doCompare(){
@@ -387,6 +404,7 @@ document.getElementById("eq-b").addEventListener("keydown",function(e){if(e.key=
 document.getElementById("inp").addEventListener("keydown",function(e){if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))doCompare();});
 
 loadEquivs();
+restorePosition();
 renderHistory();
 </script>
 </body>
