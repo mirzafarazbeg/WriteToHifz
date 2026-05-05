@@ -7,8 +7,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Amiri','Traditional Arabic',serif;background:#1a1a1a;color:#e8e0d0;height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px 16px;overflow-y:auto}
-.container{width:100%;max-width:720px;display:flex;flex-direction:column;gap:7px;flex:1}
+body{font-family:'Amiri','Traditional Arabic',serif;background:#1a1a1a;color:#e8e0d0;height:100vh;display:flex;flex-direction:column;align-items:center;padding:10px 16px;overflow:hidden}
+.container{width:100%;max-width:1100px;display:flex;flex-direction:column;gap:7px;height:100%}
+.main-row{display:flex;gap:10px;flex:1;min-height:0}
+.main-col{display:flex;flex-direction:column;gap:7px;flex:1;min-height:0}
+.sidebar{display:flex;flex-direction:column;gap:7px;width:280px;min-height:0}
 .selector-bar{display:flex;align-items:center;gap:6px;direction:ltr;flex-wrap:wrap}
 .selector-bar select,.selector-bar input[type=number]{font-family:sans-serif;font-size:13px;padding:5px 8px;border-radius:7px;border:1px solid #363636;background:#252525;color:#ccc;outline:none}
 .selector-bar select{flex:1;min-width:160px}
@@ -18,11 +21,11 @@ body{font-family:'Amiri','Traditional Arabic',serif;background:#1a1a1a;color:#e8
 .nav-btn:hover{background:#2f2f2f;color:#ccc}
 .ayah-label{font-family:sans-serif;font-size:11px;color:#555;white-space:nowrap}
 .panel{border-radius:10px;padding:10px 14px;position:relative}
-.panel-input{background:#252525;border:1px solid #363636}
-.panel-ref{background:#1e1e1e;border:1px solid #2d2d2d;flex:1}
+.panel-input{background:#252525;border:1px solid #363636;flex:1;display:flex;flex-direction:column}
+.panel-ref{background:#1e1e1e;border:1px solid #2d2d2d;flex:1;display:flex;flex-direction:column}
 .panel-label{font-family:sans-serif;font-size:10px;color:#555;position:absolute;top:8px;right:12px}
-textarea{width:100%;background:transparent;border:none;outline:none;resize:none;font-size:24px;line-height:1.75;font-family:'Amiri','Traditional Arabic',serif;color:#ddd8cc;direction:rtl;text-align:right;margin-top:20px;height:68px;caret-color:#8ab4f8}
-.ref-text{font-size:24px;line-height:1.75;direction:rtl;text-align:right;margin-top:20px;min-height:40px;word-spacing:3px}
+textarea{width:100%;background:transparent;border:none;outline:none;resize:none;font-size:24px;line-height:1.75;font-family:'Amiri','Traditional Arabic',serif;color:#ddd8cc;direction:rtl;text-align:right;margin-top:20px;flex:1;min-height:0;caret-color:#8ab4f8}
+.ref-text{font-size:24px;line-height:1.75;direction:rtl;text-align:right;margin-top:20px;flex:1;word-spacing:3px;overflow-y:auto;min-height:0}
 .ref-meta{font-family:sans-serif;font-size:10px;color:#454545;position:absolute;bottom:7px;left:12px;direction:ltr}
 .toolbar{display:flex;align-items:center;gap:8px;direction:ltr;flex-wrap:wrap}
 button.action{font-family:sans-serif;font-size:12px;font-weight:500;padding:5px 14px;border-radius:7px;border:1px solid #363636;background:#252525;color:#bbb;cursor:pointer;transition:background .15s}
@@ -37,9 +40,9 @@ button.primary:hover{background:#1b3828}
 .w-missing{color:#2e2e2e}
 @keyframes flashGreen{0%{border-color:#2a5438}50%{border-color:#5ec48a}100%{border-color:#2d2d2d}}
 .success-flash{animation:flashGreen .6s ease}
-.history-scroll{max-height:280px;overflow-y:auto;display:none}
-.history-scroll.open{display:block;max-height:none;flex:1;overflow-y:auto}
-.history-panel{background:#181818;border:1px solid #272727;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;flex:1}
+.history-scroll{overflow-y:auto;display:none;flex-direction:column;flex:1;min-height:0}
+.history-scroll.open{display:flex}
+.history-panel{background:#181818;border:1px solid #272727;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;flex:1;min-height:0}
 .history-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;direction:ltr;cursor:pointer;user-select:none}
 .history-header span{font-family:sans-serif;font-size:11px;color:#555}
 .history-item{padding:10px 14px;border-top:1px solid #222;direction:rtl}
@@ -82,14 +85,16 @@ button.primary:hover{background:#1b3828}
     <span class="ayah-label" id="ayah-of">/ —</span>
     <button class="nav-btn" onclick="nextAyah()">&#8250;</button>
   </div>
-  <div class="panel panel-input">
-    <span class="panel-label">اكتب من حفظك</span>
-    <button class="kbd-toggle" id="kbd-toggle-btn" onclick="toggleKbd()" title="On-screen keyboard" style="position:absolute;top:7px;left:12px">⌨</button>
-    <textarea id="inp" dir="rtl" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-    <div class="score-bar"><div class="score-fill" id="sf"></div></div>
-  </div>
-  <div class="kbd-panel" id="kbd-panel">
-    <div class="kbd-row">
+  <div class="main-row">
+    <div class="main-col">
+      <div class="panel panel-input">
+        <span class="panel-label">اكتب من حفظك</span>
+        <button class="kbd-toggle" id="kbd-toggle-btn" onclick="toggleKbd()" title="On-screen keyboard" style="position:absolute;top:7px;left:12px">⌨</button>
+        <textarea id="inp" dir="rtl" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        <div class="score-bar"><div class="score-fill" id="sf"></div></div>
+      </div>
+      <div class="kbd-panel" id="kbd-panel">
+        <div class="kbd-row">
       <button class="kbd-key" onclick="kbdInsert('ض')">ض</button>
       <button class="kbd-key" onclick="kbdInsert('ص')">ص</button>
       <button class="kbd-key" onclick="kbdInsert('ث')">ث</button>
@@ -102,8 +107,8 @@ button.primary:hover{background:#1b3828}
       <button class="kbd-key" onclick="kbdInsert('ح')">ح</button>
       <button class="kbd-key" onclick="kbdInsert('ج')">ج</button>
       <button class="kbd-key" onclick="kbdInsert('د')">د</button>
-    </div>
-    <div class="kbd-row">
+        </div>
+        <div class="kbd-row">
       <button class="kbd-key" onclick="kbdInsert('ش')">ش</button>
       <button class="kbd-key" onclick="kbdInsert('س')">س</button>
       <button class="kbd-key" onclick="kbdInsert('ي')">ي</button>
@@ -115,8 +120,8 @@ button.primary:hover{background:#1b3828}
       <button class="kbd-key" onclick="kbdInsert('م')">م</button>
       <button class="kbd-key" onclick="kbdInsert('ك')">ك</button>
       <button class="kbd-key" onclick="kbdInsert('ط')">ط</button>
-    </div>
-    <div class="kbd-row">
+        </div>
+        <div class="kbd-row">
       <button class="kbd-key" onclick="kbdInsert('ئ')">ئ</button>
       <button class="kbd-key" onclick="kbdInsert('ء')">ء</button>
       <button class="kbd-key" onclick="kbdInsert('ؤ')">ؤ</button>
@@ -128,48 +133,52 @@ button.primary:hover{background:#1b3828}
       <button class="kbd-key" onclick="kbdInsert('ظ')">ظ</button>
       <button class="kbd-key" onclick="kbdInsert('ذ')">ذ</button>
       <button class="kbd-key" onclick="kbdInsert('لا')">لا</button>
-    </div>
-    <div class="kbd-row">
+        </div>
+        <div class="kbd-row">
       <button class="kbd-key" onclick="kbdInsert('أ')">أ</button>
       <button class="kbd-key" onclick="kbdInsert('إ')">إ</button>
       <button class="kbd-key" onclick="kbdInsert('آ')">آ</button>
-      <button class="kbd-key space" onclick="kbdInsert(' ')">space</button>
-      <button class="kbd-key wide" onclick="kbdBack()">&#9003;</button>
-    </div>
-  </div>
-  <div class="toolbar">
-    <button class="action primary" onclick="doCompare()">Compare</button>
-    <button class="action" onclick="clearInput()">Clear</button>
-    <button class="action" id="hint-btn" onclick="showHint()" style="display:none">Hint</button>
-    <span id="score-lbl" class="meta"></span>
-  </div>
-  <div class="panel panel-ref" id="ref-panel">
-    <span class="panel-label">النص الصحيح</span>
-    <div class="ref-text" id="ref-out"><span style="color:#2a2a2a">—</span></div>
-    <span class="ref-meta" id="ref-meta"></span>
-  </div>
-  <div class="history-panel">
-    <div class="history-header" onclick="toggleHistory()">
-      <span>Previous ayaat <span id="history-count"></span></span>
-      <span id="history-tog" style="font-size:10px;color:#444">▼</span>
-    </div>
-    <div class="history-scroll" id="history-scroll">
-      <div id="history-list"></div>
-    </div>
-  </div>
-  <div class="equiv-panel">
-    <div class="equiv-header" onclick="toggleEquiv()">
-      <span>Equivalent pairs <span id="equiv-count"></span></span>
-      <span id="equiv-tog" style="font-size:10px;color:#444">▼</span>
-    </div>
-    <div class="equiv-body" id="equiv-body">
-      <div class="equiv-add">
-        <input id="eq-a" dir="rtl" placeholder="كتب" autocomplete="off" autocorrect="off" spellcheck="false">
-        <span class="sep">=</span>
-        <input id="eq-b" dir="rtl" placeholder="كتاب" autocomplete="off" autocorrect="off" spellcheck="false">
-        <button class="action" onclick="addEquiv()">Add</button>
+          <button class="kbd-key space" onclick="kbdInsert(' ')">space</button>
+          <button class="kbd-key wide" onclick="kbdBack()">&#9003;</button>
+        </div>
       </div>
-      <div id="equiv-list" class="equiv-list"></div>
+      <div class="toolbar">
+        <button class="action primary" onclick="doCompare()">Compare</button>
+        <button class="action" onclick="clearInput()">Clear</button>
+        <button class="action" id="hint-btn" onclick="showHint()" style="display:none">Hint</button>
+        <span id="score-lbl" class="meta"></span>
+      </div>
+      <div class="panel panel-ref" id="ref-panel">
+        <span class="panel-label">النص الصحيح</span>
+        <div class="ref-text" id="ref-out"><span style="color:#2a2a2a">—</span></div>
+        <span class="ref-meta" id="ref-meta"></span>
+      </div>
+    </div>
+    <div class="sidebar">
+      <div class="history-panel">
+        <div class="history-header" onclick="toggleHistory()">
+          <span>Previous ayaat <span id="history-count"></span></span>
+          <span id="history-tog" style="font-size:10px;color:#444">▼</span>
+        </div>
+        <div class="history-scroll open" id="history-scroll">
+          <div id="history-list"></div>
+        </div>
+      </div>
+      <div class="equiv-panel">
+        <div class="equiv-header" onclick="toggleEquiv()">
+          <span>Equivalent pairs <span id="equiv-count"></span></span>
+          <span id="equiv-tog" style="font-size:10px;color:#444">▼</span>
+        </div>
+        <div class="equiv-body" id="equiv-body">
+          <div class="equiv-add">
+            <input id="eq-a" dir="rtl" placeholder="كتب" autocomplete="off" autocorrect="off" spellcheck="false">
+            <span class="sep">=</span>
+            <input id="eq-b" dir="rtl" placeholder="كتاب" autocomplete="off" autocorrect="off" spellcheck="false">
+            <button class="action" onclick="addEquiv()">Add</button>
+          </div>
+          <div id="equiv-list" class="equiv-list"></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
