@@ -6,14 +6,19 @@ A lightweight, offline-capable browser app for practising Quran memorisation (hi
 
 ## Features
 
-- **Full Quran corpus** — all 6,236 ayaat embedded directly in the HTML, no server or internet required after first load
+- **Full Quran corpus** — all 6,236 ayaat from the [Tanzil Simple Clean](https://tanzil.net/download/) text, embedded directly in the HTML; no server or internet required after first load
 - **Surah and ayah selector** — pick any surah from a dropdown, navigate ayaat with previous/next buttons or type the number directly
+- **Remembers your place** — the last surah and ayah you were on is restored automatically on your next visit
 - **Word-by-word comparison** — after typing, each word is highlighted green (correct) or red (wrong/missing)
-- **Auto-advance** — reaching 80% or above automatically moves to the next ayah after a brief pause
+- **Auto-advance** — reaching 95% or above automatically moves to the next ayah after a brief pause
 - **Hint** — reveals the first ~30% of the ayah when you're stuck
-- **Equivalent pairs** — define custom word pairs (e.g. كتب = كتاب) to account for variant spellings; pairs persist across sessions via localStorage
+- **History panel** — scrollable log of all your attempts this session, showing what you typed vs the correct text with scores
+- **Shared equivalent pairs** — site-wide `equivs.json` file defines variant spellings that apply to all users (e.g. ملك = مالك); update and redeploy to roll out to everyone
+- **Personal equivalent pairs** — users can add their own pairs on top; stored in localStorage and persist across sessions
 - **Urdu keyboard support** — normalises Urdu-script characters (ی، ک، ہ، ۃ) to their Arabic equivalents before comparison, so Pakistani keyboard users aren't penalised
-- **No diacritics required** — the corpus is stored without tashkeel; you type plain letters
+- **Hamza normalisation** — أ، إ، آ are treated as equivalent to plain ا during comparison, so users aren't penalised for omitting hamza
+- **No diacritics required** — the Tanzil Simple Clean corpus has no tashkeel; you type plain letters
+- **On-screen Arabic keyboard** — built-in keyboard toggled with the ⌨ button, for users without an Arabic hardware keyboard; inserts at cursor position
 
 ## Usage
 
@@ -34,11 +39,10 @@ Some words have variant spellings depending on whether you follow رسم عثم�
 4. Pairs are stored in your browser's localStorage and persist across sessions
 
 Example pairs to add:
-| Uthmani (corpus) | Standard |
+| Corpus (Tanzil) | Common variant |
 |---|---|
-| كتب | كتاب |
 | الرحمن | الرحمان |
-| ملك | مالك |
+| مالك | ملك |
 
 ## Deployment
 
@@ -91,8 +95,9 @@ Output: `quran_hifz_v4.html`
 
 ## Roadmap
 
-- [ ] Export / import equivalent pairs as JSON
-- [ ] Session score tracking
+- [ ] Export / import personal equivalent pairs as JSON
+- [ ] Session score tracking across multiple ayaat
 - [ ] Handwriting input (tablet) via stylus + OCR — the original motivation for this project
 - [ ] Surah range practice mode (e.g. practice ayaat 5–15 in a loop)
+- [ ] و-prefix normalisation (user types و الشمس, corpus has والشمس)
 - [ ] Mobile layout optimisation
