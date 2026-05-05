@@ -7,8 +7,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Amiri','Traditional Arabic',serif;background:#1a1a1a;color:#e8e0d0;display:flex;flex-direction:column;align-items:center;padding:12px 16px}
-.container{width:100%;max-width:720px;display:flex;flex-direction:column;gap:7px}
+body{font-family:'Amiri','Traditional Arabic',serif;background:#1a1a1a;color:#e8e0d0;height:100vh;display:flex;flex-direction:column;align-items:center;padding:12px 16px;overflow-y:auto}
+.container{width:100%;max-width:720px;display:flex;flex-direction:column;gap:7px;flex:1}
 .selector-bar{display:flex;align-items:center;gap:6px;direction:ltr;flex-wrap:wrap}
 .selector-bar select,.selector-bar input[type=number]{font-family:sans-serif;font-size:13px;padding:5px 8px;border-radius:7px;border:1px solid #363636;background:#252525;color:#ccc;outline:none}
 .selector-bar select{flex:1;min-width:160px}
@@ -19,7 +19,7 @@ body{font-family:'Amiri','Traditional Arabic',serif;background:#1a1a1a;color:#e8
 .ayah-label{font-family:sans-serif;font-size:11px;color:#555;white-space:nowrap}
 .panel{border-radius:10px;padding:10px 14px;position:relative}
 .panel-input{background:#252525;border:1px solid #363636}
-.panel-ref{background:#1e1e1e;border:1px solid #2d2d2d}
+.panel-ref{background:#1e1e1e;border:1px solid #2d2d2d;flex:1}
 .panel-label{font-family:sans-serif;font-size:10px;color:#555;position:absolute;top:8px;right:12px}
 textarea{width:100%;background:transparent;border:none;outline:none;resize:none;font-size:24px;line-height:1.75;font-family:'Amiri','Traditional Arabic',serif;color:#ddd8cc;direction:rtl;text-align:right;margin-top:20px;height:68px;caret-color:#8ab4f8}
 .ref-text{font-size:24px;line-height:1.75;direction:rtl;text-align:right;margin-top:20px;min-height:40px;word-spacing:3px}
@@ -37,11 +37,11 @@ button.primary:hover{background:#1b3828}
 .w-missing{color:#2e2e2e}
 @keyframes flashGreen{0%{border-color:#2a5438}50%{border-color:#5ec48a}100%{border-color:#2d2d2d}}
 .success-flash{animation:flashGreen .6s ease}
-.history-panel{background:#181818;border:1px solid #272727;border-radius:10px;overflow:hidden}
+.history-scroll{max-height:280px;overflow-y:auto;display:none}
+.history-scroll.open{display:block;max-height:none;flex:1;overflow-y:auto}
+.history-panel{background:#181818;border:1px solid #272727;border-radius:10px;overflow:hidden;display:flex;flex-direction:column;flex:1}
 .history-header{display:flex;align-items:center;justify-content:space-between;padding:7px 12px;direction:ltr;cursor:pointer;user-select:none}
 .history-header span{font-family:sans-serif;font-size:11px;color:#555}
-.history-scroll{max-height:280px;overflow-y:auto;display:none}
-.history-scroll.open{display:block}
 .history-item{padding:10px 14px;border-top:1px solid #222;direction:rtl}
 .history-item:first-child{border-top:none}
 .h-meta{font-family:sans-serif;font-size:10px;color:#555;direction:ltr;margin-bottom:4px;display:flex;justify-content:space-between}
