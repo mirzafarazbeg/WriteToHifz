@@ -412,7 +412,7 @@ function kbdBack(){
 
 document.getElementById("eq-a").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("eq-b").focus();});
 document.getElementById("eq-b").addEventListener("keydown",function(e){if(e.key==="Enter")addEquiv();});
-document.getElementById("inp").addEventListener("keydown",function(e){if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))doCompare();if(e.key==="i"&&(e.ctrlKey||e.metaKey)){e.preventDefault();showHint();}});
+document.getElementById("inp").addEventListener("keydown",function(e){if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))doCompare();if((e.key==="i"||e.key==="I"||e.key==="ی")&&(e.ctrlKey||e.metaKey)){e.preventDefault();showHint();}});
 
 loadEquivs();
 restorePosition();
