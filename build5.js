@@ -6,7 +6,11 @@ const surahNames = {};
 q.forEach(s => { surahNames[s.id] = {sa: s.name, se: s.transliteration}; });
 
 // Corpus from Tanzil Simple (Clean) — already diacritic-free, no stripping needed
-const lines = fs.readFileSync('/mnt/user-data/uploads/quran-simple-clean__2_.txt', 'utf8')
+const tanzilPath = fs.existsSync('/home/claude/quran-simple-clean.txt')
+  ? '/home/claude/quran-simple-clean.txt'
+  : '/mnt/user-data/uploads/quran-simple-clean__2_.txt';
+
+const lines = fs.readFileSync(tanzilPath, 'utf8')
   .split('\n').filter(l => l.trim() && !l.startsWith('#'));
 
 const data = lines.map(l => {
@@ -19,6 +23,22 @@ console.log('Total verses:', data.length);
 console.log('7:2:', data.find(r=>r[0]===7&&r[3]===2)[4]);
 
 const quranJS = 'const QURAN=' + JSON.stringify(data) + ';';
+
+// Build autocomplete prefix map from corpus (frequency-ranked)
+const wordFreq = {};
+data.forEach(r => r[4].split(' ').forEach(w => { if(w.length>1) wordFreq[w]=(wordFreq[w]||0)+1; }));
+const wordsByFreq = Object.keys(wordFreq).sort((a,b) => wordFreq[b]-wordFreq[a]);
+const prefixMap = {};
+wordsByFreq.forEach(w => {
+  for (let len=2; len<=Math.min(w.length,4); len++) {
+    const p = w.slice(0,len);
+    if(!prefixMap[p]) prefixMap[p]=[];
+    if(prefixMap[p].length<5) prefixMap[p].push(w);
+  }
+});
+const autocompleteJS = 'const AC=' + JSON.stringify(prefixMap) + ';';
+console.log('Autocomplete prefixes:', Object.keys(prefixMap).length);
+
 
 // Default shared equivs — shipped in equivs.json alongside the HTML
 const defaultEquivs = [
@@ -46,8 +66,8 @@ const css = ''
 + '.panel-input{background:#252525;border:1px solid #363636}\n'
 + '.panel-ref{background:#1e1e1e;border:1px solid #2d2d2d}\n'
 + '.panel-label{font-family:sans-serif;font-size:10px;color:#555;position:absolute;top:8px;right:12px}\n'
-+ 'textarea{width:100%;background:transparent;border:none;outline:none;resize:none;font-size:24px;line-height:1.75;font-family:\'Amiri\',\'Traditional Arabic\',serif;color:#ddd8cc;direction:rtl;text-align:right;margin-top:20px;height:68px;caret-color:#8ab4f8}\n'
-+ '.ref-text{font-size:24px;line-height:1.75;direction:rtl;text-align:right;margin-top:20px;min-height:40px;word-spacing:3px}\n'
++ 'textarea{width:100%;background:transparent;border:none;outline:none;resize:none;font-size:40px;line-height:1.75;font-family:\'Amiri\',\'Traditional Arabic\',serif;color:#ddd8cc;direction:rtl;text-align:right;margin-top:20px;height:68px;caret-color:#8ab4f8}\n'
++ '.ref-text{font-size:40px;line-height:1.75;direction:rtl;text-align:right;margin-top:20px;min-height:40px;word-spacing:3px}\n'
 + '.ref-meta{font-family:sans-serif;font-size:10px;color:#454545;position:absolute;bottom:7px;left:12px;direction:ltr}\n'
 // Toolbar
 + '.toolbar{display:flex;align-items:center;gap:8px;direction:ltr;flex-wrap:wrap}\n'
@@ -101,10 +121,16 @@ const css = ''
 + '.kbd-key.wide{min-width:72px;font-family:sans-serif;font-size:12px;color:#888}\n'
 + '.kbd-key.space{flex:1;max-width:240px;font-family:sans-serif;font-size:11px;color:#555}\n'
 + '.kbd-toggle{font-family:sans-serif;font-size:16px;padding:3px 8px;border-radius:7px;border:1px solid #363636;background:#252525;color:#666;cursor:pointer;line-height:1}\n'
-+ '.kbd-toggle:hover{background:#2f2f2f;color:#aaa}\n';
++ '.kbd-toggle:hover{background:#2f2f2f;color:#aaa}\n'
++ '.ac-wrap{position:relative}\n'
++ '.ac-drop{position:absolute;top:calc(100% + 2px);right:0;left:0;background:#252525;border:1px solid #2a5438;border-radius:8px;z-index:100;overflow:hidden;display:none;direction:rtl;box-shadow:0 4px 12px rgba(0,0,0,.4)}\n'
++ '.ac-drop.open{display:block}\n'
++ '.ac-item{padding:5px 14px;font-family:\'Amiri\',\'Traditional Arabic\',serif;font-size:26px;color:#ddd8cc;cursor:pointer}\n'
++ '.ac-item:hover,.ac-item.active{background:#1b3828;color:#5ec48a}\n';
 
 const js = ''
 + quranJS + '\n'
++ autocompleteJS + '\n'
 + '\n'
 + 'var SURAH_MAP={},SURAHS=[];\n'
 + 'QURAN.forEach(function(r){var sn=r[0],sa=r[1],se=r[2],an=r[3],text=r[4];if(!SURAH_MAP[sn]){SURAH_MAP[sn]={sa:sa,se:se,ayahs:[]};SURAHS.push({sn:sn,sa:sa,se:se});}SURAH_MAP[sn].ayahs.push({an:an,text:text});});\n'
@@ -339,7 +365,58 @@ const js = ''
 + '\n'
 + 'document.getElementById("eq-a").addEventListener("keydown",function(e){if(e.key==="Enter")document.getElementById("eq-b").focus();});\n'
 + 'document.getElementById("eq-b").addEventListener("keydown",function(e){if(e.key==="Enter")addEquiv();});\n'
-+ 'document.getElementById("inp").addEventListener("keydown",function(e){if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))doCompare();});\n'
++ 'document.getElementById("inp").addEventListener("keydown",function(e){\n'
++ '  if(acKeydown(e))return;\n'
++ '  if(e.key==="Enter"&&(e.ctrlKey||e.metaKey))doCompare();\n'
++ '  if((e.key==="i"||e.key==="I"||e.key==="\u06CC")&&(e.ctrlKey||e.metaKey)){e.preventDefault();showHint();}\n'
++ '});\n'
++ 'document.getElementById("inp").addEventListener("input",function(){acSuggest();});\n'
++ 'document.addEventListener("click",function(e){if(!e.target.closest(".ac-wrap")){var d=document.getElementById("ac-drop");if(d){d.classList.remove("open");d.innerHTML="";};}});\n'
++ '\n'
+// Autocomplete functions
++ 'var acIdx=-1;\n'
++ 'function getLastPartialWord(val,pos){\n'
++ '  var before=val.slice(0,pos);\n'
++ '  var parts=before.split(" ");\n'
++ '  return parts[parts.length-1]||"";\n'
++ '}\n'
++ 'function acSuggest(){\n'
++ '  var ta=document.getElementById("inp");\n'
++ '  var drop=document.getElementById("ac-drop");\n'
++ '  var word=getLastPartialWord(ta.value,ta.selectionStart);\n'
++ '  if(word.length<2){drop.classList.remove("open");drop.innerHTML="";return;}\n'
++ '  var sugg=(AC[word]||[]).filter(function(s){return s!==word;}).slice(0,5);\n'
++ '  if(!sugg.length){drop.classList.remove("open");drop.innerHTML="";return;}\n'
++ '  acIdx=-1;\n'
++ '  drop.innerHTML=sugg.map(function(s){\n'
++ '    return "<div class=\'ac-item\' data-word=\'"+s+"\' onmousedown=\'acAccept(event,\\\""+s+"\\\")\'>"+s+"</div>";\n'
++ '  }).join("");\n'
++ '  drop.classList.add("open");\n'
++ '}\n'
++ 'function acAccept(e,word){\n'
++ '  if(e)e.preventDefault();\n'
++ '  var ta=document.getElementById("inp");\n'
++ '  var pos=ta.selectionStart;\n'
++ '  var before=ta.value.slice(0,pos);\n'
++ '  var after=ta.value.slice(pos);\n'
++ '  var lastSpace=before.lastIndexOf(" ");\n'
++ '  var newBefore=before.slice(0,lastSpace+1)+word+" ";\n'
++ '  ta.value=newBefore+after;\n'
++ '  ta.selectionStart=ta.selectionEnd=newBefore.length;\n'
++ '  ta.focus();\n'
++ '  var drop=document.getElementById("ac-drop");\n'
++ '  drop.classList.remove("open");drop.innerHTML="";acIdx=-1;\n'
++ '}\n'
++ 'function acKeydown(e){\n'
++ '  var drop=document.getElementById("ac-drop");\n'
++ '  var items=drop.querySelectorAll(".ac-item");\n'
++ '  if(!drop.classList.contains("open")||!items.length)return false;\n'
++ '  if(e.key==="ArrowDown"){e.preventDefault();acIdx=Math.min(acIdx+1,items.length-1);items.forEach(function(el,i){el.classList.toggle("active",i===acIdx);});return true;}\n'
++ '  if(e.key==="ArrowUp"){e.preventDefault();acIdx=Math.max(acIdx-1,-1);items.forEach(function(el,i){el.classList.toggle("active",i===acIdx);});return true;}\n'
++ '  if(e.key==="Tab"||e.key==="\u0027"||e.key==="ArrowLeft"){e.preventDefault();var w=acIdx>=0?items[acIdx].dataset.word:items[0].dataset.word;acAccept(null,w);return true;}\n'
++ '  if(e.key==="Escape"){drop.classList.remove("open");drop.innerHTML="";acIdx=-1;return true;}\n'
++ '  return false;\n'
++ '}\n'
 + '\n'
 + 'loadEquivs();\n'
 + 'restorePosition();\n'
@@ -374,7 +451,10 @@ const html = '<!DOCTYPE html>\n'
 + '  <div class="panel panel-input">\n'
 + '    <span class="panel-label">\u0627\u0643\u062a\u0628 \u0645\u0646 \u062d\u0641\u0638\u0643</span>\n'
 + '    <button class="kbd-toggle" id="kbd-toggle-btn" onclick="toggleKbd()" title="On-screen keyboard" style="position:absolute;top:7px;left:12px">\u2328</button>\n'
-+ '    <textarea id="inp" dir="rtl" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>\n'
++ '    <div class="ac-wrap">\n'
++ '      <textarea id="inp" dir="rtl" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>\n'
++ '      <div id="ac-drop" class="ac-drop"></div>\n'
++ '    </div>\n'
 + '    <div class="score-bar"><div class="score-fill" id="sf"></div></div>\n'
 + '  </div>\n'
 
