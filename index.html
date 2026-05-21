@@ -36,6 +36,7 @@ button.primary:hover{background:#1b3828}
 .score-bar{height:2px;border-radius:2px;background:#2a2a2a;margin-top:6px;overflow:hidden}
 .score-fill{height:100%;border-radius:2px;transition:width .4s,background .4s;width:0%}
 .w-match{color:#5ec48a}
+.w-close{color:#c8943a;text-decoration:underline wavy #c8943a 1.5px;text-underline-offset:3px}
 .w-wrong{color:#e07070;text-decoration:underline wavy #e07070 1.5px;text-underline-offset:3px}
 .w-missing{color:#2e2e2e}
 @keyframes flashGreen{0%{border-color:#2a5438}50%{border-color:#5ec48a}100%{border-color:#2d2d2d}}
@@ -216,13 +217,28 @@ function allEquivs(){return SHARED_EQUIVS.concat(LOCAL_EQUIVS);}
 
 function saveLocal(){localStorage.setItem("hifz_equivs",JSON.stringify(LOCAL_EQUIVS));}
 
-function isMatch(inp,ref){
-  var normRef=normInput(ref);
-  if(inp===normRef)return true;
-  var all=allEquivs();
-  for(var i=0;i<all.length;i++){var p=all[i];if((p[0]===inp&&p[1]===normRef)||(p[1]===inp&&p[0]===normRef))return true;}
-  return false;
+function levenshtein(a,b){
+  var m=a.length,n=b.length;
+  var dp=[];
+  for(var i=0;i<=m;i++){dp[i]=[i];for(var j=1;j<=n;j++)dp[i][j]=0;}
+  for(var j=0;j<=n;j++)dp[0][j]=j;
+  for(var i=1;i<=m;i++)for(var j=1;j<=n;j++)
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1]);
+  return dp[m][n];
 }
+
+function wordScore(inp,ref){
+  var normRef=normInput(ref);
+  if(!inp)return 0;
+  if(inp===normRef)return 1;
+  var all=allEquivs();
+  for(var i=0;i<all.length;i++){var p=all[i];if((p[0]===inp&&p[1]===normRef)||(p[1]===inp&&p[0]===normRef))return 1;}
+  var dist=levenshtein(inp,normRef);
+  if(dist===1)return 0.5;
+  return 0;
+}
+
+function isMatch(inp,ref){return wordScore(inp,ref)===1;}
 
 function normInput(t){
   if(!t)return"";
@@ -292,7 +308,7 @@ function renderHistory(){
   el.innerHTML=HISTORY.map(function(h){
     var pctColor=h.pct>=95?"#5ec48a":h.pct>=50?"#c8943a":"#e07070";
     var refHtml=h.diff.map(function(d){
-      var cls=d.missing?"w-missing":d.match?"w-match":"w-wrong";
+      var cls=d.missing?"w-missing":d.score===1?"w-match":d.score===0.5?"w-close":"w-wrong";
       return "<span class='"+cls+"'>" +d.r+" </span>";
     }).join("");
     return "<div class='history-item'>"
@@ -362,17 +378,21 @@ function doCompare(){
   if(!ayah){document.getElementById("score-lbl").textContent="Please select a surah first";return;}
   var rw=ayah.text.split(" ");
   var iw=normInput(raw).split(" ");
-  var diff=rw.map(function(r,i){var inp=iw[i]||"";return{r:r,inp:inp,match:isMatch(inp,r),missing:!inp};});
-  var mc=diff.filter(function(d){return d.match;}).length;
+  var diff=rw.map(function(r,i){var inp=iw[i]||"";var sc=wordScore(inp,r);return{r:r,inp:inp,score:sc,missing:!inp};});
   var total=diff.length;
-  var pct=Math.round(mc/total*100);
+  var credit=diff.reduce(function(sum,d){return sum+d.score;},0);
+  var pct=Math.round(credit/total*100);
+  var mc=diff.filter(function(d){return d.score===1;}).length;
+  var close=diff.filter(function(d){return d.score===0.5;}).length;
   document.getElementById("sf").style.width=pct+"%";
   document.getElementById("sf").style.background=pct>=95?"#5ec48a":pct>=50?"#c8943a":"#e07070";
-  document.getElementById("score-lbl").textContent=pct+"% · "+mc+"/"+total+" words correct";
+  var lbl=pct+"% · "+mc+"/"+total+" correct";
+  if(close)lbl+=" · "+close+" close";
+  document.getElementById("score-lbl").textContent=lbl;
   var s=SURAH_MAP[curSurah];
   var label=s.sa+" "+curSurah+":"+ayah.an;
   document.getElementById("ref-meta").textContent=s.sa+" · "+s.se+" "+curSurah+":"+ayah.an;
-  document.getElementById("ref-out").innerHTML=diff.map(function(d){var cls=d.missing?"w-missing":d.match?"w-match":"w-wrong";return"<span class='"+cls+"'>" +d.r+" </span>";}).join("");
+  document.getElementById("ref-out").innerHTML=diff.map(function(d){var cls=d.missing?"w-missing":d.score===1?"w-match":d.score===0.5?"w-close":"w-wrong";return"<span class='"+cls+"'>" +d.r+" </span>";}).join("");
   pushHistory({label:label,typed:raw,diff:diff,pct:pct});
   if(pct>=95){
     var panel=document.getElementById("ref-panel");
