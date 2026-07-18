@@ -90,6 +90,7 @@ button.primary:hover{background:#1b3828}
     <input type="number" id="ayah-num" min="1" value="1" onchange="onAyahChange()" onkeydown="if(event.key==='Enter')document.getElementById('inp').focus()">
     <span class="ayah-label" id="ayah-of">/ —</span>
     <button class="nav-btn" onclick="nextAyah()">&#8250;</button>
+    <span id="tanzil-link" style="font-family:sans-serif;font-size:11px;color:#454545;margin-right:auto"></span>
   </div>
   <div class="main-row">
     <div class="main-col">
@@ -330,6 +331,15 @@ function getCurrentAyah(){return curSurah?SURAH_MAP[curSurah].ayahs[curAyahIdx]:
 
 function savePosition(){try{localStorage.setItem("hifz_pos",JSON.stringify({sn:curSurah,idx:curAyahIdx}));}catch(e){}}
 
+function updateTanzilLink(){
+  if(!curSurah)return;
+  var ayah=getCurrentAyah();if(!ayah)return;
+  var s=SURAH_MAP[curSurah];
+  document.getElementById("tanzil-link").innerHTML=
+    s.sa+" · "+s.se+" "+curSurah+":"+ayah.an+
+    " <a href='https://tanzil.net/#"+curSurah+":"+ayah.an+"' target='_blank' style='color:#2a5438;text-decoration:none;margin-right:4px' title='Open in Tanzil'>↗ tanzil</a>";
+}
+
 function restorePosition(){
   try{
     var p=JSON.parse(localStorage.getItem("hifz_pos"));
@@ -342,6 +352,7 @@ function restorePosition(){
     document.getElementById("ayah-num").value=curAyahIdx+1;
     document.getElementById("ayah-of").textContent="/ "+total;
     document.getElementById("hint-btn").style.display="inline-block";
+    updateTanzilLink();
   }catch(e){}
 }
 
@@ -353,7 +364,7 @@ function onSurahChange(){
   document.getElementById("ayah-num").value=1;
   document.getElementById("ayah-of").textContent="/ "+total;
   document.getElementById("hint-btn").style.display="inline-block";
-  savePosition();clearAll();document.getElementById("inp").focus();
+  savePosition();clearAll();updateTanzilLink();document.getElementById("inp").focus();
 }
 
 function onAyahChange(){
@@ -361,14 +372,14 @@ function onAyahChange(){
   var total=SURAH_MAP[curSurah].ayahs.length;
   var v=Math.max(1,Math.min(parseInt(document.getElementById("ayah-num").value)||1,total));
   document.getElementById("ayah-num").value=v;
-  curAyahIdx=v-1;savePosition();clearAll();document.getElementById("inp").focus();
+  curAyahIdx=v-1;savePosition();clearAll();updateTanzilLink();document.getElementById("inp").focus();
 }
 
-function prevAyah(){if(curSurah&&curAyahIdx>0){curAyahIdx--;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();document.getElementById("inp").focus();}}
+function prevAyah(){if(curSurah&&curAyahIdx>0){curAyahIdx--;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();updateTanzilLink();document.getElementById("inp").focus();}}
 function nextAyah(){
   if(!curSurah)return;
   var total=SURAH_MAP[curSurah].ayahs.length;
-  if(curAyahIdx<total-1){curAyahIdx++;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();document.getElementById("inp").focus();setTimeout(showHint,50);}
+  if(curAyahIdx<total-1){curAyahIdx++;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();updateTanzilLink();document.getElementById("inp").focus();setTimeout(showHint,50);}
 }
 
 function doCompare(){
