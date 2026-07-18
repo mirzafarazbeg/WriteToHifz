@@ -368,8 +368,7 @@ function prevAyah(){if(curSurah&&curAyahIdx>0){curAyahIdx--;document.getElementB
 function nextAyah(){
   if(!curSurah)return;
   var total=SURAH_MAP[curSurah].ayahs.length;
-  if(curAyahIdx<total-1){curAyahIdx++;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();document.getElementById("inp").focus();}
-  showHint();
+  if(curAyahIdx<total-1){curAyahIdx++;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();document.getElementById("inp").focus();setTimeout(showHint,50);}
 }
 
 function doCompare(){
@@ -402,6 +401,7 @@ function doCompare(){
   }
 }
 
+var hintTimer=null;
 function showHint(){
   var ayah=getCurrentAyah();if(!ayah)return;
   var refWords=ayah.text.split(" ");
@@ -416,6 +416,12 @@ function showHint(){
   var hint=refWords.slice(0,showUp).join(" ")+(showUp<refWords.length?" …":"");
   document.getElementById("ref-out").innerHTML="<span style='color:#888;font-style:italic'>"+hint+"</span>";
   document.getElementById("ref-meta").textContent="hint";
+  if(hintTimer)clearTimeout(hintTimer);
+  hintTimer=setTimeout(function(){
+    document.getElementById("ref-out").innerHTML="<span style='color:#2a2a2a'>\u2014</span>";
+    document.getElementById("ref-meta").textContent="";
+    hintTimer=null;
+  },1500);
 }
 
 function clearInput(){
