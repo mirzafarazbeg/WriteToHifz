@@ -369,6 +369,7 @@ function nextAyah(){
   if(!curSurah)return;
   var total=SURAH_MAP[curSurah].ayahs.length;
   if(curAyahIdx<total-1){curAyahIdx++;document.getElementById("ayah-num").value=curAyahIdx+1;savePosition();clearAll();document.getElementById("inp").focus();}
+  showHint();
 }
 
 function doCompare(){
